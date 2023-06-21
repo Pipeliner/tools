@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+import sys
+import qrcode
+import socket
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+    finally:
+        s.close()
+    return local_ip
+
+
+def serve_file(port, file_or_directory):
+    handler = SimpleHTTPRequestHandler
+    server = HTTPServer(("", port), handler)
+
+    local_ip = get_local_ip()
+    url = f"http://{local_ip}:{port}/{file_or_directory}"
+    qr = qrcode.QRCode()
+    qr.add_data(url)
+    qr.make()
+
+    qr.print_ascii()
+
+    print(f"Serving {file_or_directory} on {url}")
+    server.serve_forever()
+
+
+def usage():
+    print("Usage: python share_file.py file_or_directory [port]")
+    sys.exit(1)
+
+
+def main():
+    if len(sys.argv) < 1:
+        usage()
+
+    file_or_directory = sys.argv[1]
+    port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
+
+    serve_file(port, file_or_directory)
+
+
+if __name__ == "__main__":
+    main()

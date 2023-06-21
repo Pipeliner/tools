@@ -1,0 +1,37 @@
+#!/usr/bin/python3
+import sys
+import shlex
+from os.path import expanduser
+import os
+
+def add_ssh_config_entry(ssh_command, alias):
+    args = shlex.split(ssh_command)
+
+    host = None
+    user = None
+    port = None
+
+    for i, arg in enumerate(args):
+        if arg == "ssh":
+            host = args[i + 1]
+        elif arg == "-p":
+            port = args[i + 1]
+        elif "@" in arg:
+            user, host = arg.split("@")
+        elif i > 1 and args[i - 1] != "-p":
+            host = arg
+
+    config_entry_s = f"\nHost {alias}\n    HostName {host}\n"
+    if user:
+        config_entry_s += f"    User {user}\n"
+    if port:
+        config_entry_s += f"    Port {port}\n"
+
+    with open(os.path.expanduser("~/.ssh/config"), "a") as config_file:
+        config_file.write(config_entry_s)
+
+if __name__ == "__main__":
+    ssh_command = sys.argv[1]
+    alias = sys.argv[2]
+    add_ssh_config_entry(ssh_command, alias)
+

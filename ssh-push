@@ -1,0 +1,25 @@
+#!/bin/bash
+set -eu -o pipefail
+set -x
+
+# Check if SSH_HOST variable is set
+if [ -z "$SSH_HOST" ]; then
+  echo "SSH_HOST variable not set"
+  exit 1
+fi
+
+REMOTE_REPO_PATH="${PWD#$HOME/}"
+
+# Create the remote directory if it doesn't exist
+ssh "$SSH_HOST" "mkdir -p ${REMOTE_REPO_PATH} && cd ${REMOTE_REPO_PATH} \
+&& git init && git config receive.denyCurrentBranch ignore && git checkout master"
+
+# Create the remote repository URL using the local repository URL and the remote repository path
+REMOTE_REPO_URL="$SSH_HOST:$REMOTE_REPO_PATH"
+
+# Add the remote repository
+git remote -v | grep -w "${SSH_HOST}" || git remote add "$SSH_HOST" "$REMOTE_REPO_URL"
+
+# Push the local repository to the remote repository
+git push "$SSH_HOST" master
+
