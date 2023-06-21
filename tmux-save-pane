@@ -1,0 +1,3 @@
+#!/bin/bash
+set -eu
+tmux capture-pane -S - \; save-buffer $1
