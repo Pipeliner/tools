@@ -6,6 +6,13 @@ import re
 def monitor_logs():
     log_keyword = "timed out to flush pci tx ring"
     driver_name = "rtw_8821ce"
+    driver_unload_command = ["modprobe", "-r", driver_name]
+    driver_load_command = ["modprobe", driver_name]
+    alternative_unload_command = ["rfkill", "block", "wlan"]
+    alternative_load_command = ["rfkill", "unblock", "wlan"]
+    use_alternative_commands = True
+    unload_command = alternative_unload_command if use_alternative_commands else driver_unload_command
+    load_command = alternative_load_command if use_alternative_commands else driver_load_command
     last_n_messages = 5
 
     # Check if dmesg supports --since flag
@@ -27,7 +34,7 @@ def monitor_logs():
             print("Detected driver issue, reloading driver...")
 
             try:
-                subprocess.check_call(['modprobe', '-r', driver_name])
+                subprocess.check_call(unload_command)
                 print("Driver unloaded successfully")
             except subprocess.CalledProcessError as e:
                 print(f"Failed to unload driver: {e}")
@@ -35,7 +42,7 @@ def monitor_logs():
             time.sleep(2)
 
             try:
-                subprocess.check_call(['modprobe', driver_name])
+                subprocess.check_call(load_command)
                 print("Driver loaded successfully")
             except subprocess.CalledProcessError as e:
                 print(f"Failed to load driver: {e}")
