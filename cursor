@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+APPIMAGE_LOCATION="${HOME}/Downloads"
+CURSOR_APPIMAGE=$(find "${APPIMAGE_LOCATION}" -name 'cursor-*.AppImage' | sort -r | head -n 1)
+if [[ -z "${CURSOR_APPIMAGE}" ]]; then
+    echo "No cursor AppImage found in ${APPIMAGE_LOCATION}"
+    exit 1
+fi
+"${CURSOR_APPIMAGE}" "$@"
